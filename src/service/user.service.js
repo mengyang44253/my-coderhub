@@ -9,11 +9,11 @@ class UserService {
 
     return result[0];
   }
-  // async getUserByName(name) {
-  //   let statement = `SELECT * FROM users WHERE name=?;`;
-  //   const res = await connection.execute(statement, [name]);
-  //   return res[0];
-  // }
+  async getUserByName(name) {
+    let statement = `SELECT * FROM users WHERE name=?;`;
+    const res = await connection.execute(statement, [name]);
+    return res[0];
+  }
 }
 
 module.exports = new UserService();
