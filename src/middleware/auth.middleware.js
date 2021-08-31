@@ -1,8 +1,8 @@
 const errorTypes = require("../constants/error-types");
 const service = require("../service/user.service");
-const authService=require('../service/auth.service')
+const authService = require("../service/auth.service");
 const md5password = require("../utils/password-handle");
-const {PUBLIC_KEY}=require('../app/config')
+const { PUBLIC_KEY } = require("../app/config");
 
 const verifyLogin = async (ctx, next) => {
   //获取用户名和密码
@@ -31,13 +31,13 @@ const verifyLogin = async (ctx, next) => {
   await next();
 };
 
-const verifyAuth = async (ctx,next) => {
+const verifyAuth = async (ctx, next) => {
   //获取token
-  const authorization=ctx.headers.authorization
-  const token=authorization.replace('Bearer','')
-  if(!authorization){
-    const error=new Error(errorTypes.UNAUTHORIZATION) 
-    return ctx.app.emit('error',error,ctx)
+  const authorization = ctx.headers.authorization;
+  const token = authorization.replace("Bearer", "");
+  if (!authorization) {
+    const error = new Error(errorTypes.UNAUTHORIZATION);
+    return ctx.app.emit("error", error, ctx);
   }
 
   //验证token
@@ -45,39 +45,51 @@ const verifyAuth = async (ctx,next) => {
     const res = jwt.verify(token, PUBLIC_KEY, {
       algorithms: ["RS256"],
     });
-    ctx.user=res
-    await next()
+    ctx.user = res;
+    await next();
   } catch (err) {
-    const error=new Error(errorTypes.UNAUTHORIZATION)
-    ctx.app.emit('error',error,ctx)
+    const error = new Error(errorTypes.UNAUTHORIZATION);
+    ctx.app.emit("error", error, ctx);
   }
-
 };
 
-const verifyPermission=(ctx,next)=>{
+const verifyPermission = (ctx, next) => {
   //获取参数
-  const {momentId}=ctx.params
-  const {id}=ctx.user
+  const { momentId } = ctx.params;
+  const { id } = ctx.user;
 
-    //查询是否具备权限
-    try {
-      
-    } catch (error) {
-      
-    }
-    const isPermission=await authService.checkMoment(momentId,id)
-    if (!isPermission) {
-      const error = new Error(errorTypes.UNPERMISSION);
-      return ctx.app.emit('error',error,ctx)
-    }
+  //查询是否具备权限
+  try {
+    const isPermission = await authService.checkMoment(momentId, id);
+    if (!isPermission) throw new Error();
+    await next();
+  } catch (err) {
+    const error = new Error(errorTypes.UNPERMISSION);
+    return ctx.app.emit("error", error, ctx);
+  }
+};
 
+const verifyPermissionComment = (ctx, next) => {
+  //获取参数
+  const [resourceKey]=Object.keys(ctx.params)
+  const tableName = resourceKey.replace('Id','')
+  const resourceId=ctx.params[resourceKey]
+  const { id } = ctx.user;
 
-
-  await next()
-}
+  //查询是否具备权限
+  try {
+    const isPermission = await authService.checkResource(tableName,resourceId, id);
+    if (!isPermission) throw new Error();
+    await next();
+  } catch (err) {
+    const error = new Error(errorTypes.UNPERMISSION);
+    return ctx.app.emit("error", error, ctx);
+  }
+};
 
 module.exports = {
   verifyLogin,
   verifyAuth,
   verifyPermission,
+  verifyPermissionComment,
 };
