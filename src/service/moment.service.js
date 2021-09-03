@@ -50,6 +50,16 @@ LIMIT ?,?;
     const [res] = await connection.execute(statement, [momentId]);
     return res;
   }
+  async hasLabel(momentId,labelId){
+    const statement=`SELECT * FROM moment_label WHERE moment_id=? AND label_id=?`
+    const [res]=await connection.execute(statement,[momentId,labelId])
+    return res[0]?true:false
+  }
+  async addLabels(momentId,labelId){
+    const statement=`INSERT INTO moment_label(moment_id,label_id) VALUES(?,?)`
+    const [res]=await connection.execute(statement,[momentId.labelId])
+    return res
+  }
 }
 
 module.exports = new MomentService();

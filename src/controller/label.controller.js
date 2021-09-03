@@ -1,9 +1,14 @@
+const labelService=require('../service/label.service')
 
 class LabelController{
   async create (ctx,next){
-
-
-    
+    const {name}=ctx.request.body
+    const res=await labelService.create(name)
+    ctx.body=res
+  }
+  async list(ctx,list){
+    const {limit,offset}=ctx.query
+    const res=await labelService.getLabels(limit,offset)
     ctx.body=res
   }
 }
